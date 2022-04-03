@@ -21,7 +21,7 @@ cur = db.cursor()
 
 def find_in_data(id_user):
     print("find in data begins\n")
-    cur.execute(f"SELECT * FROM users WHERE id = '{str(id_user)}'")
+    cur.execute(f"SELECT * FROM users WHERE id = '{id_user}'")
     res = cur.fetchall()
     print("find in data ends\n")
     return res != ()
@@ -34,9 +34,10 @@ async def cmd_start(message: types.Message):
         first_name = message.from_user.first_name
         last_name = message.from_user.last_name
         activity = 0
+        task_number = 0
         records = "0." * 25 + "0"
         current_score = "0." * 25 + "0"
-        query = f"INSERT INTO users(id, first_name, last_name, activity, records, current_score) VALUES('{id}', '{first_name}', '{last_name}', '{activity}', '{records}', '{current_score}')"
+        query = f"INSERT INTO users(id, first_name, last_name, activity, task_number, records, current_score) VALUES('{id}', '{first_name}', '{last_name}', '{activity}', '{task_number}', '{records}', '{current_score}')"
         cur.execute(query)
         db.commit()
     
@@ -45,11 +46,11 @@ async def cmd_start(message: types.Message):
     buttons = ["Описание заданий", "Выбрать задание"]
     keyboard.add(*buttons)
     await message.answer("*Приветствие*", reply_markup = keyboard)
-    res = "SELECT * FROM users"
-    cur.execute(res)
-    rows = cur.fetchall()
-    for row in rows:
-        print(row)
+    # res = "SELECT * FROM users"
+    # cur.execute(res)
+    # rows = cur.fetchall()
+    # for row in rows:
+    #     print(row)
 
 
 # Декларирование заданий
@@ -72,21 +73,19 @@ async def cmd_test2(message: types.Message):
     await message.answer("")
 
 
-@dp.message_handler(commands = "test2")
-async def cmd_test2(message: types.Message):
-    await message.answer(
-        fmt.text(
-            fmt.text(fmt.hunderline("GIANT")," - is", fmt.hstrikethrough("gant"), " giambo"), 
-            sep = '\n'
-        )
-    )
+# @dp.message_handler(commands = "test2")
+# async def cmd_test2(message: types.Message):
+#     await message.answer(
+#         fmt.text(
+#             fmt.text(fmt.hunderline("GIANT")," - is", fmt.hstrikethrough("gant"), " giambo"), 
+#             sep = '\n'
+#         )
+#     )
 
 
 
-@dp.errors_handler(exception=BotBlocked)
+@dp.errors_handler(exception = BotBlocked)
 async def error_bot_blocked(update: types.Update, exception: BotBlocked):
-    # Update: объект события от Telegram. Exception: объект исключения
-    # Здесь можно как-то обработать блокировку, например, удалить пользователя из БД
     print(f"Меня заблокировал пользователь!\nСообщение: {update}\nОшибка: {exception}")
     return True
 
@@ -94,5 +93,4 @@ async def error_bot_blocked(update: types.Update, exception: BotBlocked):
 
 
 if __name__ == "__main__":
-    # Запуск бота
     executor.start_polling(dp, skip_updates=True)

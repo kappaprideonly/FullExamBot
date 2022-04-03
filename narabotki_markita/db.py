@@ -25,6 +25,7 @@ def create_table():
                     first_name text,
                     last_name text,
                     activity integer,
+                    task_number,
                     records text,
                     current_score text
                 )"""
