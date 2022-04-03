@@ -132,7 +132,7 @@ async def leaderboard(message: types.Message):
             text += "🥉 "
         else:
             text += f" {num}. "
-        if last_name != None:
+        if last_name != 'None':
             text += f"{first_name} {last_name} — {score}\n"
         else:
             text += f"{first_name} — {score}\n"
