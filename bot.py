@@ -87,6 +87,7 @@ async def record(message: types.Message):
     records = info["records"]
     if task_number == 0:
         await message.answer("❌ Вы не выбрали задание!")
+        return
     record = records.split(".")[task_number - 1]
     text = f"🏋🏿‍♀️ Ваш рекорд в задании № {task_number}: {record}"
     await message.answer(text, parse_mode="html")
@@ -114,6 +115,7 @@ async def leaderboard(message: types.Message):
     task_number = cur.fetchall()[0]["task_number"]
     if (task_number == 0):
         await message.answer("❌ Вы не выбрали задание!")
+        return
     cur.execute("SELECT first_name, last_name, records FROM users")
     info = cur.fetchmany(10)
     leader_board = [{} for _ in range(len(info))]
