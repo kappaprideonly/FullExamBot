@@ -175,7 +175,7 @@ async def training(message: types.Message):
     elif message.text == "Да" and task_number == 0:
         text = "🤩 Выбери номер задания от 1 до 26"
         await message.answer(text, parse_mode="html")
-    elif task_number == 0 and any(message.text == x for x in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26"]):
+    elif task_number == 0 and any(message.text == str(x + 1) for x in range(26)):
         text = f"😱 Вы выбрали номер задания {message.text}\nВсе команды меню работают с этим заданием!\nНачать тренировку по этому заданию!?"
         task_number = message.text
         cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{message.from_user.id}'")
