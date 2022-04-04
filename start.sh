@@ -1,3 +1,3 @@
 #!/bin/bash
-sudo docker build -t bot4 .
-sudo docker run --name=bot4 --rm bot4 &
+sudo docker build -t bot_ege_russian .
+sudo docker run --name=bot_ege_russian --rm bot_ege_russian &

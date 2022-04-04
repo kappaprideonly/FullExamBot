@@ -21,10 +21,11 @@ def create_table():
     cur = connect.cursor()
     query = """CREATE TABLE users
                 (
-                    id integer,
+                    id text,
                     first_name text,
                     last_name text,
                     activity integer,
+                    answer text,
                     task_number integer,
                     records MEDIUMTEXT,
                     current_score MEDIUMTEXT

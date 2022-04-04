@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo docker kill bot4
+sudo docker kill bot_ege_russian
