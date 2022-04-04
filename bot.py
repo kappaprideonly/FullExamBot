@@ -205,7 +205,7 @@ async def training(message: types.Message):
         await message.answer(text, parse_mode="html")
     elif message.text == "Да" or message.text == "Далее" and not activity:
         activity = 1
-        text, answer = get_variant(task_number - 1)
+        text, answer = get_variant(task_number - 1, full_info)
         cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
         db.commit()
         await message.answer(text, parse_mode="html")
