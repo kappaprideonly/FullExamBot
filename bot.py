@@ -50,7 +50,6 @@ async def start(message: types.Message):
     activity = 0
     task_number = 0
     answer = "-1"
-    current_score = "0." * 25 + "0"
     cur.execute(f"UPDATE users SET activity = '{activity}', current_score = '{current_score}', task_number = '{task_number}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
     db.commit()
     text = f"🖐🏾 Привет, <b>{message.from_user.first_name}</b>.\nНачать тренировку?"
@@ -143,7 +142,7 @@ async def training(message: types.Message):
         cur.execute(f"SELECT answer, current_score, records, task_number FROM users WHERE id = '{user_id}'")
         info = cur.fetchall()[0]
         task_number = info["task_number"]
-        answer = info["num"]
+        answer = info["answer"]
         current_score = int(info["current_score"].split(".")[task_number - 1])
         score = int(info["records"].split(".")[task_number - 1])
         if message.text == answer:
@@ -156,7 +155,10 @@ async def training(message: types.Message):
             records = info["records"].split(".")
             records[task_number - 1] = str(score)
             records = ".".join(records)
-            cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_score}', records = '{records}' WHERE id = '{message.from_user.id}'")
+            current_scores = info["current_score"].split(".")
+            current_scores[task_number - 1] = str(current_score)
+            current_scores = ".".join(current_scores)
+            cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_scores}', records = '{records}' WHERE id = '{message.from_user.id}'")
             db.commit()
             await message.answer(text, parse_mode="html", reply_markup=keyboard)
         else:
@@ -169,7 +171,10 @@ async def training(message: types.Message):
             records = info["records"].split(".")
             records[task_number - 1] = str(score)
             records = ".".join(records)
-            cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_score}', records = '{records}' WHERE id = '{message.from_user.id}'")
+            current_scores = info["current_score"].split(".")
+            current_scores[task_number - 1] = str(current_score)
+            current_scores = ".".join(current_scores)
+            cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_scores}', records = '{records}' WHERE id = '{message.from_user.id}'")
             db.commit()
             await message.answer(text, parse_mode="html", reply_markup=keyboard)
     elif message.text == "Да" and task_number == 0:
