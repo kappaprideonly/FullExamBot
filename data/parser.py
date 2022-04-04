@@ -27,7 +27,7 @@ for i in range(26):
 		if (text_dop != None):
 			p_text_dop = text_dop.find_all("p")
 			for t in p_text_dop:
-				information += p.text + "\n"
+				information += t.text + "\n"
 		information += "#\n"
 		information += answer.get_text() + "\n" + "&\n"
 		f.write(information)
