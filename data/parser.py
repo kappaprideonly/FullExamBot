@@ -13,14 +13,12 @@ for i in range(26):
 		num += 1
 		print(f"Начинаю парсить ссылку! № {num}")
 		url = j.find("a").get("href")
+		print(url)
 		id_taska = "sol" + url.split("=")[1]
 		page = requests.get(url)
 		soup_page = bs(page.text, "lxml")
 		information = ""
-		answers = soup_page.find(id=str(id_taska), class_="solution").find_all("p")
-		for p in answers:
-			if ("Ответ" in p.get_text()):
-				answer = p.get_text()
+		answer = soup_page.find(id=str(id_taska), class_="solution").find_next_sibling().text
 		text = soup_page.find(class_="pbody")
 		text_dop = soup_page.find(class_="probtext")
 		if (text != None):
@@ -35,6 +33,6 @@ for i in range(26):
 		information += answer + "\n" + "&\n"
 		f.write(information)
 		print("Спарсил! Иду дальше!")
-	f.close()
+f.close()
 #title = soup.title
 #print(title.text)
