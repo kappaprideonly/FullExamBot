@@ -5,6 +5,23 @@ import os
 from keyboard import keyboard_answer, keyboard_no_yes
 #from pprint import pprint
 
+
+#так называемый препроцессинг
+full_info = [[] for _ in range(26)]
+for i in range(26):
+    with open(f"data/task_{i + 1}.txt", "r") as file:
+        f = file.read()
+    for j in f.split("&\n"):
+        if (len(j) < 2):
+            continue
+        info = j.split("#\n")
+        text = info[0].strip()
+        answer = info[1].strip()
+        full_info[i].append([text, answer])
+#print(full_info[25][0][1]) 26 номер 1 вариант ответ
+
+
+
 token = os.environ.get('TOKEN')
 bot = Bot(token=token)
 dp = Dispatcher(bot)
