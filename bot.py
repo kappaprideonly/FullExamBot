@@ -3,6 +3,7 @@ import pymysql
 import random
 import os
 from keyboard import keyboard_answer, keyboard_no_yes
+from datawork import get_variant, check_answer
 #from pprint import pprint
 
 
@@ -67,7 +68,7 @@ async def start(message: types.Message):
     activity = 0
     task_number = 0
     answer = "-1"
-    cur.execute(f"UPDATE users SET activity = '{activity}', current_score = '{current_score}', task_number = '{task_number}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
+    cur.execute(f"UPDATE users SET activity = '{activity}', task_number = '{task_number}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
     db.commit()
     text = f"🖐🏾 Привет, <b>{message.from_user.first_name}</b>.\nНачать тренировку?"
     keyboard = keyboard_no_yes()
@@ -85,7 +86,7 @@ async def record(message: types.Message):
     task_number = info["task_number"]
     records = info["records"]
     if task_number == 0:
-        await message.answer("Вы не выбрали задание!")
+        await message.answer("❌ Вы не выбрали задание!")
     record = records.split(".")[task_number - 1]
     text = f"🏋🏿‍♀️ Ваш рекорд в задании № {task_number}: {record}"
     await message.answer(text, parse_mode="html")
@@ -112,7 +113,7 @@ async def leaderboard(message: types.Message):
     cur.execute(f"SELECT task_number FROM users WHERE id = '{message.from_user.id}'")
     task_number = cur.fetchall()[0]["task_number"]
     if (task_number == 0):
-        await message.answer("Вы не выбрали задание!")
+        await message.answer("❌ Вы не выбрали задание!")
     cur.execute("SELECT first_name, last_name, records FROM users")
     info = cur.fetchmany(10)
     leader_board = [{} for _ in range(len(info))]
@@ -145,7 +146,7 @@ async def leaderboard(message: types.Message):
 @dp.message_handler()
 async def training(message: types.Message):
     if not find_in_data(str(message.from_user.id)):
-        text = f"Вас нет в базе данных! Нажмите на /start, {message.from_user.first_name}"
+        text = f"❌ Вас нет в базе данных! Нажмите на /start, {message.from_user.first_name}"
         await message.answer(text, parse_mode="html")
         return
     cur.execute(f"SELECT activity, task_number FROM users WHERE id = '{message.from_user.id}'")
@@ -162,7 +163,7 @@ async def training(message: types.Message):
         answer = info["answer"]
         current_score = int(info["current_score"].split(".")[task_number - 1])
         score = int(info["records"].split(".")[task_number - 1])
-        if message.text == answer:
+        if check_answer(message.text, answer):
             current_score += 1
             if current_score > score:
                 score = current_score
@@ -182,7 +183,7 @@ async def training(message: types.Message):
             if current_score > score:
                 score = current_score
             current_score = 0
-            text = f"❌ <b>НЕВЕРНО! </b>\n Желаете ли вы начать заново?"
+            text = f"❌ <b>НЕВЕРНО! </b>\n👉Ответ: {answer}👈\nЖелаете ли вы начать заново?"
             keyboard = keyboard_no_yes()
             answer = ""
             records = info["records"].split(".")
@@ -194,7 +195,7 @@ async def training(message: types.Message):
             cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_scores}', records = '{records}' WHERE id = '{message.from_user.id}'")
             db.commit()
             await message.answer(text, parse_mode="html", reply_markup=keyboard)
-    elif message.text == "Да" and task_number == 0:
+    elif message.text.lower() == "да" and task_number == 0:
         text = "🤩 Выбери номер задания от 1 до 26"
         await message.answer(text, parse_mode="html")
     elif task_number == 0 and any(message.text == str(x + 1) for x in range(26)):
@@ -203,13 +204,14 @@ async def training(message: types.Message):
         cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{message.from_user.id}'")
         db.commit()
         await message.answer(text, parse_mode="html")
-    elif message.text == "Да" or message.text == "Далее" and not activity:
+    elif message.text.lower() == "да" and not activity:
         activity = 1
         text, answer = get_variant(task_number - 1, full_info)
+        text = f"✍️ Задание № {task_number}\n" + text 
         cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
         db.commit()
         await message.answer(text, parse_mode="html")
-    elif message.text == "Нет":
+    elif message.text.lower() == "нет":
         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         key_start = types.InlineKeyboardButton(text='/start', callback_data='/start')
         keyboard.add(key_start)
