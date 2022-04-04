@@ -16,10 +16,21 @@ for i in range(26):
 		print(url)
 		page = requests.get(url)
 		soup_page = bs(page.text, "lxml")
-		answer = soup_page.find(class_="answer").get_text()
-		text = soup_page.find(class_="pbody").get_text()
-		f.write(text + "\n" + "#\n")
-		f.write(answer + "\n" + "&\n")
+		information = ""
+		answer = soup_page.find(class_="answer")
+		text = soup_page.find(class_="pbody")
+		text_dop = soup_page.find(class_="probtext")
+		if (text != None):
+			p_text = text.find_all("p")
+			for t in p_text:
+				information += t.text + "\n"
+		if (text_dop != None):
+			p_text_dop = text_dop.find_all("p")
+			for t in p_text_dop:
+				information += p.text + "\n"
+		information += "#\n"
+		information += answer.get_text() + "\n" + "&\n"
+		f.write(information)
 		print("Спарсил! Иду дальше!")
 	f.close()
 #title = soup.title
