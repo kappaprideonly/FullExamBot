@@ -1,13 +1,18 @@
+import time
+from tokenize import Token
 from aiogram import Bot, Dispatcher, executor, types
+from click import command
 import pymysql
 import random
 import os
-from keyboard import keyboard_answer, keyboard_no_yes
+from keyboard import get_keyboard, yes_no_back_to_tasks_keyboard, keyboard_no_yes, keyboard_no_yes_choose
 from datawork import get_variant, check_answer
+from aiogram.dispatcher.filters import Text
 #from pprint import pprint
 
 
 #так называемый препроцессинг
+FAQ = ""
 full_info = [[] for _ in range(26)]
 for i in range(26):
     with open(f"data/task_{i + 1}.txt", "r") as file:
@@ -19,12 +24,13 @@ for i in range(26):
         text = info[0].strip()
         answer = info[1].strip()
         full_info[i].append([text, answer])
-#print(full_info[25][0][1]) 26 номер 1 вариант ответ
+    with open(f"FAQ.txt", "r") as file:
+        FAQ = file.read()
+#print(full_info[25][0][1]) [26 номер] [1 вариант] [ответ]
 
 
-
-token = os.environ.get('TOKEN')
-bot = Bot(token=token)
+TOKEN = os.environ.get('TOKEN')
+bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 db = pymysql.connect(
         host='35.232.17.130',
@@ -33,6 +39,42 @@ db = pymysql.connect(
         database='ege_russian_db',
         cursorclass=pymysql.cursors.DictCursor)
 cur = db.cursor()
+
+
+@dp.callback_query_handler(Text(startswith="num_"))
+async def callbacks_num(call: types.CallbackQuery):
+    cur.execute(f"SELECT task_number FROM users WHERE id = '{call.from_user.id}'")
+    current_task = cur.fetchall()[0]["task_number"]
+    if current_task:
+        text = f"😤 Вы в интерфейсе задания {current_task}!"
+        await call.message.answer(text, parse_mode="html")
+        await call.answer()
+        return
+    task_number = call.data[4:]
+    text = f"😱 Вы выбрали номер задания {task_number}\nВсе команды меню работают с этим заданием!\nНачать тренировку по этому заданию!?"
+    cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{call.from_user.id}'")
+    db.commit()
+    await call.message.answer(text, parse_mode="html", reply_markup=yes_no_back_to_tasks_keyboard())
+    await call.answer()
+
+@dp.callback_query_handler(text="back_to_tasks")
+async def callbacks_back_to_tasks(call: types.CallbackQuery):
+    
+    cur.execute(f"SELECT activity FROM users WHERE id = '{call.from_user.id}'")
+    if cur.fetchall()[0]["activity"]:
+        text = f"🤨 Выполните задание!"
+        await call.message.answer(text, parse_mode="html")
+        await call.answer()
+        return
+    task_number = 0
+    cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{call.from_user.id}'")
+    db.commit()
+
+    await call.message.answer("📝 Вы в меню", parse_mode="html", reply_markup=types.ReplyKeyboardRemove())
+    text = "🤩 Выбери номер задания от 1 до 26, гигант"
+    await call.message.answer(text, parse_mode="html", reply_markup=get_keyboard())
+    await call.answer()
+
 
 # query = """CREATE TABLE users
 #                 (
@@ -45,6 +87,9 @@ cur = db.cursor()
 #                     current_score MEDIUMTEXT
 #                 )"""
 
+@dp.message_handler(commands="FAQ")
+async def faq(message: types.Message):
+    await message.answer(FAQ, parse_mode="html")
 
 def find_in_data(id_user):
     cur.execute(f"SELECT * FROM users WHERE id = '{id_user}'")
@@ -117,7 +162,7 @@ async def leaderboard(message: types.Message):
         await message.answer("❌ Вы не выбрали задание!")
         return
     cur.execute("SELECT first_name, last_name, records FROM users")
-    info = cur.fetchmany(10)
+    info = cur.fetchall()
     leader_board = [{} for _ in range(len(info))]
     for j in range(len(info)):
         leader_board[j]["first_name"] = info[j]["first_name"]
@@ -128,6 +173,8 @@ async def leaderboard(message: types.Message):
     num = 0
     for j in reversed(leader_board):
         num += 1
+        if (num == 11):
+            break
         first_name = j["first_name"]
         last_name = j["last_name"]
         score = j["score"]
@@ -171,7 +218,7 @@ async def training(message: types.Message):
                 score = current_score
             answer = ""
             text = f"✅ <b>Верно!</b> Желаете ли вы продолжить дальше?\n<b>score:{current_score}</b>"
-            keyboard = keyboard_no_yes()
+            keyboard = keyboard_no_yes_choose()
             records = info["records"].split(".")
             records[task_number - 1] = str(score)
             records = ".".join(records)
@@ -186,7 +233,7 @@ async def training(message: types.Message):
                 score = current_score
             current_score = 0
             text = f"❌ <b>НЕВЕРНО! </b>\n👉Ответ: {answer}👈\nЖелаете ли вы начать заново?"
-            keyboard = keyboard_no_yes()
+            keyboard = keyboard_no_yes_choose()
             answer = ""
             records = info["records"].split(".")
             records[task_number - 1] = str(score)
@@ -197,15 +244,27 @@ async def training(message: types.Message):
             cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_scores}', records = '{records}' WHERE id = '{message.from_user.id}'")
             db.commit()
             await message.answer(text, parse_mode="html", reply_markup=keyboard)
+
+
+
+
+
+
     elif message.text.lower() == "да" and task_number == 0:
+        await message.answer("📝 Вы в меню", parse_mode="html", reply_markup=types.ReplyKeyboardRemove())
         text = "🤩 Выбери номер задания от 1 до 26"
-        await message.answer(text, parse_mode="html")
+        await message.answer(text, parse_mode="html", reply_markup=get_keyboard())
+
+
+
+
+
     elif task_number == 0 and any(message.text == str(x + 1) for x in range(26)):
         text = f"😱 Вы выбрали номер задания {message.text}\nВсе команды меню работают с этим заданием!\nНачать тренировку по этому заданию!?"
         task_number = message.text
         cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{message.from_user.id}'")
         db.commit()
-        await message.answer(text, parse_mode="html")
+        await message.answer(text, parse_mode="html", reply_markup=yes_no_back_to_tasks_keyboard())
     elif message.text.lower() == "да" and not activity:
         activity = 1
         text, answer = get_variant(task_number - 1, full_info)
@@ -213,7 +272,7 @@ async def training(message: types.Message):
         cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
         db.commit()
         if (len(text) <= 4094):
-            await message.answer(text)
+            await message.answer(text, reply_markup=types.ReplyKeyboardRemove())
         else:
             await message.answer(text[:len(text) // 2]) 
             await message.answer(text[len(text) // 2:])
@@ -223,6 +282,15 @@ async def training(message: types.Message):
         keyboard.add(key_start)
         text = "😳 Хорошо, но задумайся над пословицей:\nШевели раньше <b>мозгами</b>, а то поплатишься <b>щеками</b>."
         await message.answer(text, parse_mode="html", reply_markup=keyboard)
+    elif message.text.lower() == "выбрать другое задание":
+        activity = 0
+        task_number = 0
+        answer = "-1"
+        cur.execute(f"UPDATE users SET activity = '{activity}', task_number = '{task_number}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
+        db.commit()
+        await message.answer("📝 Вы в меню", parse_mode="html", reply_markup=types.ReplyKeyboardRemove())
+        text = "🤩 Выбери номер задания от 1 до 26"
+        await message.answer(text, parse_mode="html", reply_markup=get_keyboard())
     else:
         await message.answer(
                          f"😡 Я тебя не понимаю, дружище. Соберитесь, <b>{message.from_user.first_name}</b>",
@@ -234,3 +302,4 @@ while True:
     except Exception as e:
         time.sleep(15)
 db.close()
+
