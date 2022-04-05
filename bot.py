@@ -213,10 +213,10 @@ async def training(message: types.Message):
         cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
         db.commit()
         if (len(text) <= 4094):
-            await message.answer(text, parse_mode="html")
+            await message.answer(text)
         else:
-            await message.answer(text[:len(text) // 2], parse_mode="html") 
-            await message.answer(text[len(text) // 2:], parse_mode="html")
+            await message.answer(text[:len(text) // 2]) 
+            await message.answer(text[len(text) // 2:])
     elif message.text.lower() == "нет":
         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         key_start = types.InlineKeyboardButton(text='/start', callback_data='/start')
