@@ -1,15 +1,10 @@
 import time
-from tokenize import Token
 from aiogram import Bot, Dispatcher, executor, types
-from click import command
 import pymysql
-import random
 import os
 from keyboard import get_keyboard, yes_no_back_to_tasks_keyboard, keyboard_no_yes, keyboard_no_yes_choose
 from datawork import get_variant, check_answer
 from aiogram.dispatcher.filters import Text
-#from pprint import pprint
-
 
 #так называемый препроцессинг
 FAQ = ""
