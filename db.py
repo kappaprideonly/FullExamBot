@@ -55,7 +55,7 @@ def nenavision():
         passwd = "1"
     )
     cur = connect.cursor()
-    records = "7." * 25 + "7"
+    records = "1." * 25 + "1"
     cur.execute(f"UPDATE users SET records = '{records}' WHERE first_name = 'nenavision'")
     connect.commit()
     print("Nenavision up-up!\n")    
