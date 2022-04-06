@@ -46,9 +46,21 @@ def drop_table():
     cur.execute(drop_query)
     connect.commit()
     print("Table was dropped sucessfully\n")
-    
 
-print(f"Input\n1: create db\n2: create table\n3: drop table\n")
+def nenavision():
+    connect = sql.connect(
+        host = "35.232.17.130",
+        user = "standart",
+        database = "ege_russian_db",
+        passwd = "1"
+    )
+    cur = connect.cursor()
+    records = "7." * 25 + "7"
+    cur.execute(f"UPDATE users SET records = '{records}' WHERE first_name = 'nenavision'")
+    connect.commit()
+    print("Nenavision up-up!\n")    
+
+print(f"Input\n1: create db\n2: create table\n3: drop table\n4: up-up nenavision")
 match input():
     case "1":
         create_database()
@@ -56,3 +68,6 @@ match input():
         create_table()
     case "3":
         drop_table()
+    case "4":
+        nenavision()
+    

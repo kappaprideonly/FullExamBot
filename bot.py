@@ -37,21 +37,21 @@ db = pymysql.connect(
 cur = db.cursor()
 #########
 
-# @dp.callback_query_handler(Text(startswith="num_"))
-# async def callbacks_num(call: types.CallbackQuery):
-#     cur.execute(f"SELECT task_number FROM users WHERE id = '{call.from_user.id}'")
-#     current_task = cur.fetchall()[0]["task_number"]
-#     if current_task:
-#         text = f"😤 Вы в интерфейсе задания {current_task}!"
-#         await call.message.answer(text, parse_mode="html")
-#         await call.answer()
-#         return
-#     task_number = call.data[4:]
-#     text = f"😱 Вы выбрали номер задания {task_number}\nВсе команды меню работают с этим заданием!\nНачать тренировку по этому заданию!?"
-#     cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{call.from_user.id}'")
-#     db.commit()
-#     await call.message.answer(text, parse_mode="html", reply_markup=yes_no_back_to_tasks_keyboard())
-#     await call.answer()
+@dp.callback_query_handler(Text(startswith="num_"))
+async def callbacks_num(call: types.CallbackQuery):
+    cur.execute(f"SELECT task_number FROM users WHERE id = '{call.from_user.id}'")
+    current_task = cur.fetchall()[0]["task_number"]
+    if current_task:
+        text = f"😤 Вы в интерфейсе задания {current_task}!"
+        await call.message.answer(text, parse_mode="html")
+        await call.answer()
+        return
+    task_number = call.data[4:]
+    text = f"😱 Вы выбрали номер задания {task_number}\nВсе команды меню работают с этим заданием!\nНачать тренировку по этому заданию!?"
+    cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{call.from_user.id}'")
+    db.commit()
+    await call.message.answer(text, parse_mode="html", reply_markup=yes_no_back_to_tasks_keyboard())
+    await call.answer()
 
 # @dp.callback_query_handler(text="back_to_tasks")
 # async def callbacks_back_to_tasks(call: types.CallbackQuery):
@@ -106,6 +106,28 @@ async def start(message: types.Message):
         query = f"INSERT INTO users(id, first_name, last_name, activity, task_number, answer, records, current_score) VALUES('{id}', '{first_name}', '{last_name}', '{activity}', '{task_number}', '{answer}', '{records}', '{current_score}')"
         cur.execute(query)
         db.commit()
+        quize = """Дружище, в ЕГЭ целых 26 заданий в первой части, но твой интерес вызывают только несколько, задания с текстом не решил ещё ни один человек.📉
+
+Чтобы замотивировать тебя на решение и других заданий, мы запускаем Конкурс🪅.
+Он вызовет меркантильный интерес, поскольку у него 
+имеется призовой фонд 1200 рублей💰
+
+📝Какие условия?
+1. Конкурс заканчивается 14 апреля в 00:00, в некс четверг. 📆
+
+2. Как образуется таблица победителей? 📊
+Что ж, ваши очки в таблице лидеров равны минимальному из рекордов всех заданий.
+Что это значит? 🔎
+Пример: твой рекорд 100 очков (/record) в задании номер 4, в задании 26 — 1 очко, а во всех остальных по 2 очка. Берём минимальный из рекордов: 1 в задании 26. Значит, твой результат в конкурсной таблице равен 1.
+Чтобы увидеть таблицу лидеров 👉 /oversize
+
+3. Три участника конкурса, набравшие наибольшее количество очков получат призы:
+🥇500 рублей за первое место
+🥈400 рублей за второе место
+🥉300 рублей за третье место
+
+4. С победителями мы свяжемся лично и обсудим, как получить приз 🏆"""
+        await message.answer(quize, parse_mode="html")
     activity = 0
     task_number = 0
     answer = "-1"
@@ -166,6 +188,40 @@ async def leaderboard(message: types.Message):
         leader_board[j]["score"] = int(info[j]["records"].split(".")[task_number - 1])
     leader_board.sort(key=lambda x: x["score"])
     text = f"🏆 Таблица лидеров по заданию {task_number}:\n\n"
+    num = 0
+    for j in reversed(leader_board):
+        num += 1
+        if (num == 11):
+            break
+        first_name = j["first_name"]
+        last_name = j["last_name"]
+        score = j["score"]
+        if num == 1:
+            text += "🥇 "
+        elif num == 2:
+            text += "🥈 "
+        elif num == 3:
+            text += "🥉 "
+        else:
+            text += f" {num}. "
+        if last_name != 'None':
+            text += f"{first_name} {last_name} — {score}\n"
+        else:
+            text += f"{first_name} — {score}\n"
+    await message.answer(text, parse_mode="html")
+
+@dp.message_handler(commands="oversize")
+async def oversize(message: types.Message):
+    cur.execute("SELECT first_name, last_name, records FROM users")
+    info = cur.fetchall()
+    leader_board = [{} for _ in range(len(info))]
+    for j in range(len(info)):
+        leader_board[j]["first_name"] = info[j]["first_name"]
+        leader_board[j]["last_name"] = info[j]["last_name"]
+        records = [int(x) for x in info[j]["records"].split(".")]
+        leader_board[j]["score"] = min(records)
+    leader_board.sort(key=lambda x: x["score"])
+    text = f"🏆 Таблица лидеров по всем заданиям:\n\n"
     num = 0
     for j in reversed(leader_board):
         num += 1
