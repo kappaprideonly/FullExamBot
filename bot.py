@@ -19,11 +19,12 @@ for i in range(26):
         text = info[0].strip()
         answer = info[1].strip()
         full_info[i].append([text, answer])
-    with open(f"FAQ.txt", "r") as file:
-        FAQ = file.read()
+with open("FAQ.txt", "r") as file:
+    FAQ = file.read()
 #print(full_info[25][0][1]) [26 номер] [1 вариант] [ответ]
 
-
+#подключение к базе данных и к боту
+#########
 TOKEN = os.environ.get('TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
@@ -34,41 +35,41 @@ db = pymysql.connect(
         database='ege_russian_db',
         cursorclass=pymysql.cursors.DictCursor)
 cur = db.cursor()
+#########
 
+# @dp.callback_query_handler(Text(startswith="num_"))
+# async def callbacks_num(call: types.CallbackQuery):
+#     cur.execute(f"SELECT task_number FROM users WHERE id = '{call.from_user.id}'")
+#     current_task = cur.fetchall()[0]["task_number"]
+#     if current_task:
+#         text = f"😤 Вы в интерфейсе задания {current_task}!"
+#         await call.message.answer(text, parse_mode="html")
+#         await call.answer()
+#         return
+#     task_number = call.data[4:]
+#     text = f"😱 Вы выбрали номер задания {task_number}\nВсе команды меню работают с этим заданием!\nНачать тренировку по этому заданию!?"
+#     cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{call.from_user.id}'")
+#     db.commit()
+#     await call.message.answer(text, parse_mode="html", reply_markup=yes_no_back_to_tasks_keyboard())
+#     await call.answer()
 
-@dp.callback_query_handler(Text(startswith="num_"))
-async def callbacks_num(call: types.CallbackQuery):
-    cur.execute(f"SELECT task_number FROM users WHERE id = '{call.from_user.id}'")
-    current_task = cur.fetchall()[0]["task_number"]
-    if current_task:
-        text = f"😤 Вы в интерфейсе задания {current_task}!"
-        await call.message.answer(text, parse_mode="html")
-        await call.answer()
-        return
-    task_number = call.data[4:]
-    text = f"😱 Вы выбрали номер задания {task_number}\nВсе команды меню работают с этим заданием!\nНачать тренировку по этому заданию!?"
-    cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{call.from_user.id}'")
-    db.commit()
-    await call.message.answer(text, parse_mode="html", reply_markup=yes_no_back_to_tasks_keyboard())
-    await call.answer()
-
-@dp.callback_query_handler(text="back_to_tasks")
-async def callbacks_back_to_tasks(call: types.CallbackQuery):
+# @dp.callback_query_handler(text="back_to_tasks")
+# async def callbacks_back_to_tasks(call: types.CallbackQuery):
     
-    cur.execute(f"SELECT activity FROM users WHERE id = '{call.from_user.id}'")
-    if cur.fetchall()[0]["activity"]:
-        text = f"🤨 Выполните задание!"
-        await call.message.answer(text, parse_mode="html")
-        await call.answer()
-        return
-    task_number = 0
-    cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{call.from_user.id}'")
-    db.commit()
+#     cur.execute(f"SELECT activity FROM users WHERE id = '{call.from_user.id}'")
+#     if cur.fetchall()[0]["activity"]:
+#         text = f"🤨 Выполните задание!"
+#         await call.message.answer(text, parse_mode="html")
+#         await call.answer()
+#         return
+#     task_number = 0
+#     cur.execute(f"UPDATE users SET task_number = '{task_number}' WHERE id = '{call.from_user.id}'")
+#     db.commit()
 
-    await call.message.answer("📝 Вы в меню", parse_mode="html", reply_markup=types.ReplyKeyboardRemove())
-    text = "🤩 Выбери номер задания от 1 до 26, гигант"
-    await call.message.answer(text, parse_mode="html", reply_markup=get_keyboard())
-    await call.answer()
+#     await call.message.answer("📝 Вы в меню", parse_mode="html", reply_markup=types.ReplyKeyboardRemove())
+#     text = "🤩 Выбери номер задания от 1 до 26, гигант"
+#     await call.message.answer(text, parse_mode="html", reply_markup=get_keyboard())
+#     await call.answer()
 
 
 # query = """CREATE TABLE users
