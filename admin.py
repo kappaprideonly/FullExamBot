@@ -24,13 +24,13 @@ def kill():
 
 def main():
     print("1 - запустить бота на полигоне, 2 - запустить бота на основе, 3 - выключить бота")
-    match input():
-        case "1":
-            on_test()
-        case "2":
-            on_main()
-        case "3":
-            kill()
+    answer = input()
+    if (answer == "1"):
+        on_test()
+    elif (answer == "2"):
+        on_main()
+    elif (answer == "3"):
+        kill()
 
 
 if __name__ == "__main__":
