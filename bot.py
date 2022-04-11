@@ -103,6 +103,7 @@ def total():
     counter = int(info["counter"])
     counter += 1
     cur.execute(f"UPDATE `stats` SET counter = '{counter}'")
+    db.commit()
     return counter
 
 def check_response(id_user, answer):
