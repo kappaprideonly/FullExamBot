@@ -17,7 +17,7 @@ cur = db.cursor()
 
 cur.execute("SELECT id FROM users")
 res = cur.fetchall()
-text = """Работает"""
+text = "\stats \users"
 num = 0
 for user in res:
     num += 1    

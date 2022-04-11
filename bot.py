@@ -202,7 +202,8 @@ async def stats(message: types.Message):
     text = f"""[📊 Статистика]↴
 
 Заданий отправлено — {all_ans}
-Верных ответов — {wrong_ans} ({rate}%)"""
+Верных ответов — {right_ans} ({rate}%)
+"""
 
     await message.answer(text, parse_mode="html")
 
