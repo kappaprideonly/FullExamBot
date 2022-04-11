@@ -1,4 +1,5 @@
 import time
+from turtle import right
 from aiogram import Bot, Dispatcher, executor, types
 import pymysql
 import os
@@ -6,7 +7,7 @@ from keyboard import get_keyboard, yes_no_back_to_tasks_keyboard, keyboard_no_ye
 from datawork import get_variant, check_answer
 from aiogram.dispatcher.filters import Text
 
-#так называемый препроцессинг
+# так называемый препроцессинг
 FAQ = ""
 full_info = [[] for _ in range(26)]
 for i in range(26):
@@ -21,20 +22,22 @@ for i in range(26):
         full_info[i].append([text, answer])
 with open("FAQ.txt", "r") as file:
     FAQ = file.read()
-#print(full_info[25][0][1]) [26 номер] [1 вариант] [ответ]
+# print(full_info[25][0][1]) [26 номер] [1 вариант] [ответ]
 
-#подключение к базе данных и к боту
+# подключение к базе данных и к боту
 #########
 TOKEN = os.environ.get('TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 db = pymysql.connect(
-        host='35.232.17.130',
-        user='standart',
-        password='1',
-        database='ege_russian_db',
-        cursorclass=pymysql.cursors.DictCursor)
+    host='35.232.17.130',
+    user='standart',
+    password='1',
+    database='ege_russian_db',
+    cursorclass=pymysql.cursors.DictCursor)
 cur = db.cursor()
+
+
 #########
 
 @dp.callback_query_handler(Text(startswith="num_"))
@@ -53,9 +56,10 @@ async def callbacks_num(call: types.CallbackQuery):
     await call.message.answer(text, parse_mode="html", reply_markup=yes_no_back_to_tasks_keyboard())
     await call.answer()
 
+
 # @dp.callback_query_handler(text="back_to_tasks")
 # async def callbacks_back_to_tasks(call: types.CallbackQuery):
-    
+
 #     cur.execute(f"SELECT activity FROM users WHERE id = '{call.from_user.id}'")
 #     if cur.fetchall()[0]["activity"]:
 #         text = f"🤨 Выполните задание!"
@@ -87,13 +91,35 @@ async def callbacks_num(call: types.CallbackQuery):
 async def faq(message: types.Message):
     await message.answer(FAQ, parse_mode="html")
 
+
 def find_in_data(id_user):
     cur.execute(f"SELECT * FROM users WHERE id = '{id_user}'")
     res = cur.fetchall()
     return res != ()
 
+def total():
+    cur.execute("SELECT * from stats")
+    info = cur.fetchall()[0]
+    counter = int(info["counter"])
+    counter += 1
+    cur.execute(f"UPDATE `stats` SET counter = '{counter}'")
+    return counter
+
+def check_response(id_user, answer):
+    cur.execute(f"SELECT right_ans, wrong_ans FROM `users` WHERE id = '{id_user}'")
+    info = cur.fetchall()[0]
+    right_ans = int(info["right_ans"])
+    wrong_ans = int(info["wrong_ans"])
+    if answer:
+        right_ans += 1
+    else:
+        wrong_ans += 1
+    cur.execute(f"UPDATE `users` SET right_ans = '{right_ans}', wrong_ans = '{wrong_ans}' WHERE id = '{id_user}'")
+    db.commit()
+
 @dp.message_handler(commands="start")
 async def start(message: types.Message):
+    total()
     if not find_in_data(message.from_user.id):
         id = message.from_user.id
         first_name = message.from_user.first_name
@@ -134,7 +160,8 @@ async def start(message: types.Message):
     activity = 0
     task_number = 0
     answer = "-1"
-    cur.execute(f"UPDATE users SET activity = '{activity}', task_number = '{task_number}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
+    cur.execute(
+        f"UPDATE users SET activity = '{activity}', task_number = '{task_number}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
     db.commit()
     text = f"🖐🏾 Привет, <b>{message.from_user.first_name}</b>.\nНачать тренировку?"
     keyboard = keyboard_no_yes()
@@ -143,6 +170,7 @@ async def start(message: types.Message):
 
 @dp.message_handler(commands="record")
 async def record(message: types.Message):
+    total()
     if not find_in_data(str(message.from_user.id)):
         text = f"Вас нет в базе данных! Нажмите на /start, {message.from_user.id.first_name}"
         await message.answer(text, parse_mode="html")
@@ -159,17 +187,39 @@ async def record(message: types.Message):
     await message.answer(text, parse_mode="html")
 
 
+@dp.message_handler(commands="stats")
+async def stats(message: types.Message):
+    total()
+    cur.execute(f"SELECT records, right_ans, wrong_ans FROM users WHERE id = '{message.from_user.id}'")
+    info = cur.fetchall()[0]
+    text = ""
+    right_ans = int(info["right_ans"])
+    wrong_ans = int(info["wrong_ans"])
+    all_ans = right_ans + wrong_ans
+    rate = 0
+    if (all_ans != 0):
+        rate = round(right_ans / all_ans * 100)
+    text = f"""[📊 Статистика]↴
+
+Заданий отправлено — {all_ans}
+Верных ответов — {wrong_ans} ({rate}%)"""
+
+    await message.answer(text, parse_mode="html")
+
 @dp.message_handler(commands="users")
 async def users(message: types.Message):
+    temp = total()
     cur.execute("SELECT * FROM users")
     res = cur.fetchall()
-    text = f"📊 Количество пользователей: {len(res)}"
+    text = f"📊 Количество пользователей: {len(res)}\n👐Количество действий: {temp}"
     await message.answer(text, parse_mode="html")
 
 
 @dp.message_handler(commands="update")
 async def update(message: types.Message):
-    cur.execute(f"UPDATE users SET first_name = '{message.from_user.first_name}', last_name = '{message.from_user.last_name}' WHERE id = '{message.from_user.id}'")
+    total()
+    cur.execute(
+        f"UPDATE users SET first_name = '{message.from_user.first_name}', last_name = '{message.from_user.last_name}' WHERE id = '{message.from_user.id}'")
     db.commit()
     text = f"😉 Имя пользователя обновлено!"
     await message.answer(text, parse_mode="html")
@@ -177,6 +227,7 @@ async def update(message: types.Message):
 
 @dp.message_handler(commands="leaderboard")
 async def leaderboard(message: types.Message):
+    total()
     cur.execute(f"SELECT task_number FROM users WHERE id = '{message.from_user.id}'")
     task_number = cur.fetchall()[0]["task_number"]
     if (task_number == 0):
@@ -213,8 +264,10 @@ async def leaderboard(message: types.Message):
             text += f"{first_name} — {score}\n"
     await message.answer(text, parse_mode="html")
 
+
 @dp.message_handler(commands="oversize")
 async def oversize(message: types.Message):
+    total()
     cur.execute("SELECT first_name, last_name, records FROM users")
     info = cur.fetchall()
     leader_board = [{} for _ in range(len(info))]
@@ -247,8 +300,10 @@ async def oversize(message: types.Message):
             text += f"{first_name} — {score}\n"
     await message.answer(text, parse_mode="html")
 
+
 @dp.message_handler()
 async def training(message: types.Message):
+    total()
     if not find_in_data(str(message.from_user.id)):
         text = f"❌ Вас нет в базе данных! Нажмите на /start, {message.from_user.first_name}"
         await message.answer(text, parse_mode="html")
@@ -268,6 +323,7 @@ async def training(message: types.Message):
         current_score = int(info["current_score"].split(".")[task_number - 1])
         score = int(info["records"].split(".")[task_number - 1])
         if check_answer(message.text, answer):
+            check_response(message.from_user.id, 1)
             current_score += 1
             if current_score > score:
                 score = current_score
@@ -280,10 +336,12 @@ async def training(message: types.Message):
             current_scores = info["current_score"].split(".")
             current_scores[task_number - 1] = str(current_score)
             current_scores = ".".join(current_scores)
-            cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_scores}', records = '{records}' WHERE id = '{message.from_user.id}'")
+            cur.execute(
+                f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_scores}', records = '{records}' WHERE id = '{message.from_user.id}'")
             db.commit()
             await message.answer(text, parse_mode="html", reply_markup=keyboard)
         else:
+            check_response(message.from_user.id, 0)
             if current_score > score:
                 score = current_score
             current_score = 0
@@ -296,7 +354,8 @@ async def training(message: types.Message):
             current_scores = info["current_score"].split(".")
             current_scores[task_number - 1] = str(current_score)
             current_scores = ".".join(current_scores)
-            cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_scores}', records = '{records}' WHERE id = '{message.from_user.id}'")
+            cur.execute(
+                f"UPDATE users SET activity = '{activity}', answer = '{answer}', current_score = '{current_scores}', records = '{records}' WHERE id = '{message.from_user.id}'")
             db.commit()
             await message.answer(text, parse_mode="html", reply_markup=keyboard)
 
@@ -323,13 +382,14 @@ async def training(message: types.Message):
     elif message.text.lower() == "да" and not activity:
         activity = 1
         text, answer = get_variant(task_number - 1, full_info)
-        text = f"✍️ Задание № {task_number}\n" + text 
-        cur.execute(f"UPDATE users SET activity = '{activity}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
+        text = f"✍️ Задание № {task_number}\n" + text
+        cur.execute(
+            f"UPDATE users SET activity = '{activity}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
         db.commit()
         if (len(text) <= 4094):
             await message.answer(text, reply_markup=types.ReplyKeyboardRemove())
         else:
-            await message.answer(text[:len(text) // 2]) 
+            await message.answer(text[:len(text) // 2])
             await message.answer(text[len(text) // 2:])
     elif message.text.lower() == "нет":
         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
@@ -341,15 +401,17 @@ async def training(message: types.Message):
         activity = 0
         task_number = 0
         answer = "-1"
-        cur.execute(f"UPDATE users SET activity = '{activity}', task_number = '{task_number}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
+        cur.execute(
+            f"UPDATE users SET activity = '{activity}', task_number = '{task_number}', answer = '{answer}' WHERE id = '{message.from_user.id}'")
         db.commit()
         await message.answer("📝 Вы в меню", parse_mode="html", reply_markup=types.ReplyKeyboardRemove())
         text = "🤩 Выбери номер задания от 1 до 26"
         await message.answer(text, parse_mode="html", reply_markup=get_keyboard())
     else:
         await message.answer(
-                         f"😡 Я тебя не понимаю, дружище. Соберитесь, <b>{message.from_user.first_name}</b>",
-                         parse_mode="html")
+            f"😡 Я тебя не понимаю, дружище. Соберитесь, <b>{message.from_user.first_name}</b>",
+            parse_mode="html")
+
 
 while True:
     try:
@@ -357,4 +419,3 @@ while True:
     except Exception as e:
         time.sleep(15)
 db.close()
-
