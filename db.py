@@ -63,6 +63,33 @@ def nenavision():
     connect.commit()
     print("Nenavision up-up!\n")
 
+def But():
+    connect = sql.connect(
+        host = "35.232.17.130",
+        user = "standart",
+        database = "ege_russian_db",
+        passwd = "1",
+        cursorclass=sql.cursors.DictCursor
+    )
+    cur = connect.cursor()
+    cur.execute(f"SELECT current_score, records FROM users WHERE first_name = '🦋'")
+    info = cur.fetchall()[0]
+    records = info["records"]
+    print(f"         {records}")
+    records = records.split(".")
+    records[13] = str(26)
+    records = ".".join(records)
+    print(f"New rec: {records}")
+    current_scores = info["current_score"]
+    print(f"         {current_scores}")
+    current_scores = current_scores.split(".")
+    current_scores[14 - 1] = str(26)
+    current_scores = ".".join(current_scores)
+    print(f"New cur: {current_scores}")
+    cur.execute(f"UPDATE users SET records = '{records}' WHERE first_name = '🦋'")
+    cur.execute(f"UPDATE users SET current_score = '{current_scores}' WHERE first_name = '🦋'")
+    connect.commit()
+    print("E|3 up-up!\n")
 
 def add():
     connect = sql.connect(
@@ -132,6 +159,7 @@ def stats():
     connect.commit()
     print("Table stats was created sucessfully")
 
+# But()
 print(f"Input\n1: create db\n2: create table\n3: drop table\n4: up-up nenavision\n5: add columns\n6: delete columns\n7: info\n8: stats")
 match input():
     case "1":
