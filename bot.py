@@ -324,7 +324,7 @@ async def training(message: types.Message):
         answer = info["answer"]
         current_score = int(info["current_score"].split(".")[task_number - 1])
         score = int(info["records"].split(".")[task_number - 1])
-        if check_answer(message.text, answer):
+        if check_answer(message.text.strip(), answer):
             check_response(message.from_user.id, 1)
             current_score += 1
             if current_score > score:

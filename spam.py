@@ -17,12 +17,14 @@ cur = db.cursor()
 
 cur.execute("SELECT id FROM users")
 res = cur.fetchall()
-text = "\stats \users"
+text = "/stats /users"
 num = 0
+print(text)
+input()
 for user in res:
     num += 1    
     try:
-        bot.send_message(user["id"], text, parse_mode="html")
+        bot.send_message(user["id"], text)
     except Exception:
         print("Blocked")
 print(num)

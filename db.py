@@ -83,7 +83,7 @@ def But():
     current_scores = info["current_score"]
     print(f"         {current_scores}")
     current_scores = current_scores.split(".")
-    current_scores[14 - 1] = str(26)
+    current_scores[7 - 1] = str(16)
     current_scores = ".".join(current_scores)
     print(f"New cur: {current_scores}")
     cur.execute(f"UPDATE users SET records = '{records}' WHERE first_name = '🦋'")
