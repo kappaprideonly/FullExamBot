@@ -1,4 +1,6 @@
 import pymysql as sql
+import time
+
 
 def create_database():
     connect = sql.connect(
@@ -216,25 +218,26 @@ def Jamboid():
 
 # But()
 # Jamboid()
-Aristarch_up()
+# Aristarch_up()
 
-print(f"Input\n1: create db\n2: create table\n3: drop table\n4: up-up nenavision\n5: add columns\n6: delete columns\n7: info\n8: stats")
-match input():
-    case "1":
+print(f"Input\n1: create db\n2: create table\n3: drop table\n4: up-up nenavision\n5: add columns\n6: delete columns\n7: info\n8: stats\n9: Aristarch_up")
+match int(input()):
+    case 1:
         create_database()
-    case "2":
+    case 2:
         create_table()
-    case "3":
+    case 3:
         drop_table()
-    case "4":
+    case 4:
         nenavision()
-    case "5":
+    case 5:
         add()
-    case "6":
+    case 6:
         delete()
-    case "7":
+    case 7:
         info()
-    case "8":
+    case 8:
         stats()
-
+    case 9:
+        Aristarch_up()
     
