@@ -159,6 +159,40 @@ def stats():
     connect.commit()
     print("Table stats was created sucessfully")
 
+def Aristarch_up():
+    connect = sql.connect(
+        host = "35.232.17.130",
+        user = "standart",
+        database = "ege_russian_db",
+        passwd = "1",
+        cursorclass=sql.cursors.DictCursor
+    )
+    cur = connect.cursor()
+    number = 0
+    for i in range(5 * 26):
+    # for i in range(1):
+        cur.execute(f"SELECT current_score, records FROM users WHERE last_name = 'Samosski'")
+        info = cur.fetchall()[0]
+        records = info["records"]
+        print(f"         {records}")
+        records = records.split(".")
+        records[number] = str(int(records[number]) + 1)
+        records = ".".join(records)
+        print(f"New rec: {records}")
+        current_scores = info["current_score"]
+        print(f"         {current_scores}")
+        current_scores = current_scores.split(".")
+        current_scores[number] = str(int(current_scores[number]) + 1)
+        current_scores = ".".join(current_scores)
+        print(f"New cur: {current_scores}")
+        cur.execute(f"UPDATE users SET records = '{records}' WHERE last_name = 'Samosski'")
+        cur.execute(f"UPDATE users SET current_score = '{current_scores}' WHERE last_name = 'Samosski'")
+        connect.commit()
+        print("Ja up-up!\n")
+        time.sleep(22)
+        number += 1
+
+
 def Jamboid():
     connect = sql.connect(
         host = "35.232.17.130",
@@ -182,6 +216,7 @@ def Jamboid():
 
 # But()
 # Jamboid()
+Aristarch_up()
 
 print(f"Input\n1: create db\n2: create table\n3: drop table\n4: up-up nenavision\n5: add columns\n6: delete columns\n7: info\n8: stats")
 match input():
