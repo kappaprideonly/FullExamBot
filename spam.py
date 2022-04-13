@@ -17,7 +17,7 @@ cur = db.cursor()
 
 cur.execute("SELECT id FROM users")
 res = cur.fetchall()
-text = "/stats /users"
+text = "Друзья, хочу напомнить, что конкурс заканчивается сегодня в 23:59:59. Всем удачи!"
 num = 0
 print(text)
 input()

@@ -213,7 +213,7 @@ async def users(message: types.Message):
     temp = total()
     cur.execute("SELECT * FROM users")
     res = cur.fetchall()
-    text = f"📊 Количество пользователей: {len(res)}\n👐Количество действий: {temp}"
+    text = f"📊 Количество пользователей: {len(res)}\n👐 Количество действий: {temp}"
     await message.answer(text, parse_mode="html")
 
 
