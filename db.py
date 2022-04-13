@@ -159,7 +159,30 @@ def stats():
     connect.commit()
     print("Table stats was created sucessfully")
 
+def Jamboid():
+    connect = sql.connect(
+        host = "35.232.17.130",
+        user = "standart",
+        database = "ege_russian_db",
+        passwd = "1",
+        cursorclass=sql.cursors.DictCursor
+    )
+    cur = connect.cursor()
+    cur.execute("UPDATE users SET current_score = '12.11.11.11.15.13.11.12.11.11.10.11.11.11.11.10.10.10.10.10.10.10.10.10.10.10' WHERE id = '908509325'")
+    connect.commit()
+    cur.execute("SELECT * FROM users WHERE id = '908509325'")
+    print(cur.fetchall())
+    # id_p = info["id"]
+    # records = info["records"].split(".")
+    # for j in range(len(records)):
+    #     records[j] = str(max(int(records[j]), 14))
+    # records = ".".join(records)
+    # cur.execute(f"UPDATE users SET records = '{records}' WHERE first_name = 'Mortimer mortis'")
+    # connect.commit()
+
 # But()
+# Jamboid()
+
 print(f"Input\n1: create db\n2: create table\n3: drop table\n4: up-up nenavision\n5: add columns\n6: delete columns\n7: info\n8: stats")
 match input():
     case "1":
