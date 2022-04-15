@@ -203,6 +203,7 @@ def Jamboid():
         passwd = "1",
         cursorclass=sql.cursors.DictCursor
     )
+
     cur = connect.cursor()
     cur.execute("UPDATE users SET current_score = '12.11.11.11.15.13.11.12.11.11.10.11.11.11.11.10.10.10.10.10.10.10.10.10.10.10' WHERE id = '908509325'")
     connect.commit()
@@ -216,10 +217,37 @@ def Jamboid():
     # cur.execute(f"UPDATE users SET records = '{records}' WHERE first_name = 'Mortimer mortis'")
     # connect.commit()
 
+def leaders():
+    connect = sql.connect(
+        host = "35.232.17.130",
+        user = "standart",
+        database = "ege_russian_db",
+        passwd = "1",
+        cursorclass = sql.cursors.DictCursor
+    )
+    cur = connect.cursor()
+    cur.execute("SELECT first_name, last_name, id, records FROM users")
+    info = cur.fetchall()
+    leader_board = [{} for _ in range(len(info))]
+    for j in range(len(info)):
+        leader_board[j]["first_name"] = info[j]["first_name"]
+        leader_board[j]["last_name"] = info[j]["last_name"]
+        leader_board[j]["id"] = info[j]["idss"]
+        records = [int(x) for x in info[j]["records"].split(".")]
+        leader_board[j]["score"] = min(records)
+    leader_board.sort(key=lambda x: x["score"])
+    num = 0
+    for j in reversed(leader_board):
+        num += 1
+        if (num == 11):
+            break
+        print(num, j["id"])
+        
+
 # But()
 # Jamboid()
 # Aristarch_up()
-
+leaders()
 print(f"Input\n1: create db\n2: create table\n3: drop table\n4: up-up nenavision\n5: add columns\n6: delete columns\n7: info\n8: stats\n9: Aristarch_up")
 match int(input()):
     case 1:

@@ -1,4 +1,4 @@
-from telebot import types
+# from telebot import types
 import telebot
 import pymysql
 token = input("TOKEN: ")
@@ -15,16 +15,20 @@ db = pymysql.connect(
 cur = db.cursor()
 
 
-cur.execute("SELECT id FROM users")
+cur.execute("SELECT id, first_name FROM users")
 res = cur.fetchall()
-text = "Из-за самоуверенности и необдуманных действий база данных была повреждена, был сделан, так называемый, backup не первой свежести. Поэтому скорее всего все ваши сегодняшние действия были утеряны, а некоторых и вовсе нет в базе данных. Продлеваем конкурс до 14 апреля 23:59:59 МСК. Всем спасибо за внимание! Вернем последний /oversize в базу данных. Ваши сегодняшние текущие рекорды можем восстановить, если вы их скинете в личные сообщения скриншотом!"
+text = "Поздравляю с победой! Напиши кодовое слово 'JamboTea' в личные сообщения @Markit125"
 num = 0
 print(text)
 input()
 for user in res:
     num += 1    
     try:
-        bot.send_message(user["id"], text)
+        # if user["id"] == "5171198119":
+        if user["id"] == "595859649" or user["id"] == "908509325":
+            print(user["first_name"])
+            bot.send_message(user["id"], text)
+            print("gig")
     except Exception:
         print("Blocked")
 print(num)
