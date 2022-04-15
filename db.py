@@ -1,3 +1,4 @@
+from multiprocessing import connection
 import pymysql as sql
 import time
 
@@ -60,7 +61,7 @@ def nenavision():
         cursorclass=sql.cursors.DictCursor
     )
     cur = connect.cursor()
-    records = "1." * 25 + "1"
+    records = "10." * 25 + "10"
     cur.execute(f"UPDATE users SET records = '{records}' WHERE first_name = 'nenavision'")
     connect.commit()
     print("Nenavision up-up!\n")
@@ -71,7 +72,7 @@ def But():
         user = "standart",
         database = "ege_russian_db",
         passwd = "1",
-        cursorclass=sql.cursors.DictCursor
+        cursorclass = sql.cursors.DictCursor
     )
     cur = connect.cursor()
     cur.execute(f"SELECT current_score, records FROM users WHERE first_name = '🦋'")
@@ -191,7 +192,7 @@ def Aristarch_up():
         cur.execute(f"UPDATE users SET current_score = '{current_scores}' WHERE last_name = 'Samosski'")
         connect.commit()
         print("Ja up-up!\n")
-        time.sleep(22)
+        time.sleep(10)
         number += 1
 
 
@@ -205,17 +206,13 @@ def Jamboid():
     )
 
     cur = connect.cursor()
-    cur.execute("UPDATE users SET current_score = '12.11.11.11.15.13.11.12.11.11.10.11.11.11.11.10.10.10.10.10.10.10.10.10.10.10' WHERE id = '908509325'")
+    cur.execute("SELECT * FROM users WHERE first_name = '🦋'")
+    info = cur.fetchall()[0]
+    fff = "30.30.30.30.30.30.30.30.30.30.30.30.30.30.31.30.30.30.30.31.30.30.30.30.30.29"
+    cur.execute(f"UPDATE users SET records = '{fff}', current_score = '{fff}' WHERE first_name = '🦋'")
     connect.commit()
-    cur.execute("SELECT * FROM users WHERE id = '908509325'")
-    print(cur.fetchall())
-    # id_p = info["id"]
-    # records = info["records"].split(".")
-    # for j in range(len(records)):
-    #     records[j] = str(max(int(records[j]), 14))
-    # records = ".".join(records)
-    # cur.execute(f"UPDATE users SET records = '{records}' WHERE first_name = 'Mortimer mortis'")
-    # connect.commit()
+    print("HAIL")
+  
 
 def leaders():
     connect = sql.connect(
@@ -245,7 +242,7 @@ def leaders():
         
 
 # But()
-# Jamboid()
+#Jamboid()
 # Aristarch_up()
 leaders()
 print(f"Input\n1: create db\n2: create table\n3: drop table\n4: up-up nenavision\n5: add columns\n6: delete columns\n7: info\n8: stats\n9: Aristarch_up")
