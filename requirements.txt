@@ -1,2 +1,3 @@
 aiogram
-pymysql
+psycopg2-binary
+pyTelegramBotAPI

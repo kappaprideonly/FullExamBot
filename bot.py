@@ -1,11 +1,12 @@
 import time
-from turtle import right
 from aiogram import Bot, Dispatcher, executor, types
-import pymysql
+import psycopg2 as pymysql
+from psycopg2.extras import RealDictCursor
 import os
 from keyboard import get_keyboard, yes_no_back_to_tasks_keyboard, keyboard_no_yes, keyboard_no_yes_choose
 from datawork import get_variant, check_answer
 from aiogram.dispatcher.filters import Text
+from config import _db_name, _password, _host, _port, _user
 
 # так называемый препроцессинг
 FAQ = ""
@@ -30,14 +31,13 @@ TOKEN = os.environ.get('TOKEN')
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 db = pymysql.connect(
-    host='35.232.17.130',
-    user='standart',
-    password='1',
-    database='ege_russian_db',
-    cursorclass=pymysql.cursors.DictCursor)
-cur = db.cursor()
-
-
+    host=_host,
+    user=_user,
+    password=_password,
+    database=_db_name,
+    port=_port
+)
+cur = db.cursor(cursor_factory=RealDictCursor)
 #########
 
 @dp.callback_query_handler(Text(startswith="num_"))
@@ -95,19 +95,19 @@ async def faq(message: types.Message):
 def find_in_data(id_user):
     cur.execute(f"SELECT * FROM users WHERE id = '{id_user}'")
     res = cur.fetchall()
-    return res != ()
+    return res != []
 
 def total():
     cur.execute("SELECT * from stats")
     info = cur.fetchall()[0]
     counter = int(info["counter"])
     counter += 1
-    cur.execute(f"UPDATE `stats` SET counter = '{counter}'")
+    cur.execute(f"UPDATE stats SET counter = '{counter}'")
     db.commit()
     return counter
 
 def check_response(id_user, answer):
-    cur.execute(f"SELECT right_ans, wrong_ans FROM `users` WHERE id = '{id_user}'")
+    cur.execute(f"SELECT right_ans, wrong_ans FROM users WHERE id = '{id_user}'")
     info = cur.fetchall()[0]
     right_ans = int(info["right_ans"])
     wrong_ans = int(info["wrong_ans"])
@@ -115,7 +115,7 @@ def check_response(id_user, answer):
         right_ans += 1
     else:
         wrong_ans += 1
-    cur.execute(f"UPDATE `users` SET right_ans = '{right_ans}', wrong_ans = '{wrong_ans}' WHERE id = '{id_user}'")
+    cur.execute(f"UPDATE users SET right_ans = '{right_ans}', wrong_ans = '{wrong_ans}' WHERE id = '{id_user}'")
     db.commit()
 
 @dp.message_handler(commands="start")

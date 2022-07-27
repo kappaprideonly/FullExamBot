@@ -1,0 +1,5 @@
+_host = "83.136.232.47"
+_user = "alex"
+_password = "010999aaa"
+_db_name = "ege_russian"
+_port = "5432"
